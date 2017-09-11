@@ -57,12 +57,10 @@ public class TrayIconImpl {
                 TimeUnit.MILLISECONDS.toSeconds(millis) % TimeUnit.MINUTES.toSeconds(1));
     }
 
-
     public static void timeIsUp() {
         simpleTimer.stop();
         textarea.setText("Time is up!");
         mainFrame.setVisible(true);
-
     }
 
 
