@@ -1,5 +1,6 @@
 package by.tiranid.web;
 
+import by.tiranid.sync.FileUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -22,8 +23,6 @@ public class RequestSender {
     private static String login = "tiranid";
     private static String password = "12345";
 
-    public static boolean needSync = true;
-    public static String filePath;
 
 
     public static List<NameValuePair> createTimeRecord(long iterStartTime) {
@@ -31,44 +30,6 @@ public class RequestSender {
         params.add(new BasicNameValuePair("hash", Integer.toString((login+password).hashCode())));
         params.add(new BasicNameValuePair("time", Long.toString(iterStartTime)));
         return params;
-    }
-
-    public static void cleanAfterSync(String login) {
-        try (PrintWriter writer = new PrintWriter(filePath + "/" + login + ".dxl")) {
-            writer.close();
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        needSync = false;
-    }
-
-    public static String setFilePath() {
-        String relativePath = "chache";
-        Path path = Paths.get(relativePath);
-        filePath = path.getName(0).toUri().getPath().substring(1);
-        return filePath;
-    }
-
-    public static void saveRecordToFile(List<NameValuePair> record) {
-        String relativePath = "chache";
-        String fileName = "login.dxl";
-        File file = null;
-        file = new File(filePath);
-        if (!file.exists()) {
-            file.mkdir();
-        }
-
-        String data = record.get(1).getValue();
-
-        try(FileWriter writer = new FileWriter(relativePath + "/" + fileName, true)) {
-            writer.write(data + "\n");
-            writer.flush();
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     /**
@@ -95,7 +56,7 @@ public class RequestSender {
         }
         catch (ConnectException e) {
             // сохранение в файл с логином времени
-            saveRecordToFile(record);
+            FileUtils.saveRecordToFile(record);
             return null;
         }
         catch (IOException e) {
@@ -104,27 +65,12 @@ public class RequestSender {
         return null;
     }
 
-    public static List<String> readFromDxlToList(String path) {
-        List<String> lines = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                lines.add(line);
-            }
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-        return lines;
-    }
-
-
     public static void syncUserData(String login) {
         boolean success = true;
         // начинается с 0
         int count = 0;
-        String path = filePath + "/" + login + ".dxl";
-        List<String> lines = readFromDxlToList(path);
+        String path = FileUtils.filePath + "/" + login + ".dxl";
+        List<String> lines = FileUtils.readFromDxlToList(path);
         HttpResponse response;
         for (String time : lines) {
             response = sendRequest(Long.valueOf(time));
@@ -136,32 +82,20 @@ public class RequestSender {
         }
         // успешная доставка запросов
         if (success) {
-            cleanAfterSync(login);
+            FileUtils.cleanAfterSync(login);
         }
         // проблемы
         else {
             // стираем файл с логом до проблемного запроса
             // то есть count строк
             // лучше - перезапись файла оставшимися значениями из lines
-            updateFile(lines, count, path);
-        }
-    }
-
-    public static void updateFile(List<String> lines, int count, String path) {
-        try (PrintWriter writer = new PrintWriter(path)) {
-            for (int i = count; i < lines.size(); i++) {
-                String time = lines.get(i);
-                writer.println(time);
-            }
-            writer.flush();
-        }
-        catch (IOException e) {
-            e.printStackTrace();
+            FileUtils.updateFile(lines, count, path);
         }
     }
 
     public static void main(String[] args) {
-        setFilePath();
+        FileUtils.setFilePath();
+
 
         sendRequest(new Date().getTime());
         syncUserData("login");

@@ -1,6 +1,10 @@
 package by.tiranid.swing;
 
+import by.tiranid.sync.FileUtils;
 import by.tiranid.timer.SimpleTimer;
+import by.tiranid.utils.MainClientProperties;
+import by.tiranid.utils.MainUtils;
+import by.tiranid.web.RequestSender;
 
 import java.awt.*;
 import javax.swing.*;
@@ -8,9 +12,10 @@ import java.awt.event.*;
 
 import java.net.*;
 
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
-import static by.tiranid.web.RequestSender.sendRequest;
 
 public class TrayIconImpl {
 
@@ -26,8 +31,18 @@ public class TrayIconImpl {
 
     public static long iterationTimeMs;
 
+    private static SimpleTimer simpleTimer;
+
+
+    private static final Logger log = Logger.getLogger(TrayIconImpl.class.getName());
+
+
 
     public static void main(String[] args) {
+        log.info("Started main thread");
+        MainUtils.loadDefaultProperties();
+
+
         SwingUtilities.invokeLater(TrayIconImpl::createGUI);
     }
 
@@ -39,7 +54,6 @@ public class TrayIconImpl {
         textarea = new JTextArea();
         mainPane.add(textarea);
         mainFrame.setContentPane(mainPane);
-        System.out.println("test");
         mainFrame.setMinimumSize(new Dimension(300, 200));
 
         mainFrame.pack();
@@ -58,8 +72,8 @@ public class TrayIconImpl {
     }
 
     public static void timeIsUp() {
-        simpleTimer.stop();
         textarea.setText("Time is up!");
+        simpleTimer.stop();
         mainFrame.setVisible(true);
     }
 
@@ -81,11 +95,10 @@ public class TrayIconImpl {
             // stop all and notify that timer gone
             timeIsUp();
             // sending request to spring
-            sendRequest(iterationTimeMs);
+            RequestSender.sendRequest(iterationTimeMs);
         }
     }
 
-    private static SimpleTimer simpleTimer;
 
 
 
