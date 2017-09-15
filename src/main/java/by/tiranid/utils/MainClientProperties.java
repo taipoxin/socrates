@@ -4,6 +4,7 @@ import by.tiranid.sync.FileUtils;
 
 import java.io.*;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 public class MainClientProperties {
 
@@ -12,6 +13,9 @@ public class MainClientProperties {
     public static String propFile = "config.properties";
     public static String propFilePath;
     public static Properties properties;
+
+    private static final Logger log = Logger.getLogger(MainClientProperties.class.getName());
+
 
     public static void setPropFilePath() {
         MainClientProperties.propFilePath = FileUtils.defPath + propRelativePath + propFile;
@@ -43,7 +47,7 @@ public class MainClientProperties {
             properties.load(input);
             return properties;
         } catch (IOException ex) {
-            ex.printStackTrace();
+            log.info("config file is not exists");
         }
         return null;
     }

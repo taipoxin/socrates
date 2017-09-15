@@ -1,7 +1,6 @@
 package by.tiranid.web;
 
 import by.tiranid.sync.FileUtils;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
@@ -10,10 +9,9 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.ConnectException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -21,7 +19,7 @@ import java.util.List;
 public class RequestSender {
 
     private static String login = "tiranid";
-    private static String password = "12345";
+    private static String password = "6559520";
 
 
 

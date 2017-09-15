@@ -1,18 +1,15 @@
 package by.tiranid.swing;
 
-import by.tiranid.sync.FileUtils;
 import by.tiranid.timer.SimpleTimer;
-import by.tiranid.utils.MainClientProperties;
 import by.tiranid.utils.MainUtils;
 import by.tiranid.web.RequestSender;
 
-import java.awt.*;
 import javax.swing.*;
-import java.awt.event.*;
-
-import java.net.*;
-
-import java.util.Properties;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.net.URL;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -72,9 +69,12 @@ public class TrayIconImpl {
     }
 
     public static void timeIsUp() {
-        textarea.setText("Time is up!");
+        //textarea.setText("Time is up!");
+        if (!mainFrame.isVisible())
+            mainFrame.setVisible(true);
+        long c = System.currentTimeMillis();
         simpleTimer.stop();
-        mainFrame.setVisible(true);
+        long m = System.currentTimeMillis();
     }
 
 
@@ -84,20 +84,30 @@ public class TrayIconImpl {
     public static void updateTextArea(long timerMillis) {
         long millis = timerMillis - System.currentTimeMillis();
 
-        if (millis > 0) {
+
+        if (millis > 900) {
             if (lastS != (millis / 1000)) {
                 String hms = convertMillisToTime(millis);
+                log.info("with " + millis + "remaining change timer to " + hms);
                 textarea.setText(hms);
                 lastS = millis / 1000;
             }
         }
-        else {
+
+
+        else if (!SimpleTimer.timerStopped) {
+            log.info("time is up");
+            textarea.setText("Time is up");
+            log.info("stop timer");
+            SimpleTimer.timerStopped = true;
             // stop all and notify that timer gone
             timeIsUp();
             // sending request to spring
+            log.info("send request");
             RequestSender.sendRequest(iterationTimeMs);
         }
     }
+
 
 
 

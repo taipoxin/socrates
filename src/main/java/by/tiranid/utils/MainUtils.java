@@ -2,7 +2,6 @@ package by.tiranid.utils;
 
 import by.tiranid.sync.FileUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -46,11 +45,11 @@ public class MainUtils {
         }
         String filePath = FileUtils.defPath;
 
-        Properties props = MainClientProperties.loadFromFile();
         log.info("loading properties from file...");
+        Properties props = MainClientProperties.loadFromFile();
         if (props == null || props.getProperty("userLogin") == null) {
             props = new Properties();
-            log.info("properties file is empty");
+            log.info("properties file is empty" + "\n creating new properties file");
             String userLogin = "tiranid";
             String userPass = "6559520";
             String userHash = Integer.toString((userLogin + userPass).hashCode());
