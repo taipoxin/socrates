@@ -1,23 +1,22 @@
 package by.tiranid.utils;
 
 import by.tiranid.sync.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
 
 
 public class MainUtils {
 
-    private static final Logger log = Logger.getLogger(MainUtils.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(MainUtils.class);
 
 
     /**
      * config is not finished
      * TODO: убрать совсем либо доделать
      */
+    /*
     public static void setUpLoggerConfig() {
 
         try {
@@ -28,6 +27,7 @@ public class MainUtils {
             e.printStackTrace();
         }
     }
+    */
 
 
     // based on userLogin prop

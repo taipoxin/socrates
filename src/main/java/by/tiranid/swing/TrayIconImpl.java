@@ -1,153 +1,100 @@
 package by.tiranid.swing;
 
+import by.tiranid.swing.component.LogJFrame;
+import by.tiranid.swing.component.LogJTextArea;
+import by.tiranid.swing.listeners.LeftClickMouseListener;
 import by.tiranid.timer.SimpleTimer;
-import by.tiranid.utils.MainUtils;
+import by.tiranid.timer.TimerUtils;
 import by.tiranid.web.RequestSender;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
 import java.net.URL;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
 
 public class TrayIconImpl {
 
-    public static final String APPLICATION_NAME = "Socrates";
-    public static final String ICON_STR = "/images/32_32img.png";
-
-    private static JFrame mainFrame;
-    private static boolean appVisibility = false;
-    private static JTextArea textarea;
-    static long lastS = 0;
-
-    private static int iterationSeconds = 10;
-
-    public static long iterationTimeMs;
-
-    private static SimpleTimer simpleTimer;
+    private static final Logger log = LoggerFactory.getLogger(TrayIconImpl.class);
 
 
-    private static final Logger log = Logger.getLogger(TrayIconImpl.class.getName());
+    private final int windowWidth = 300;
+    private final int windowHeight = 200;
 
 
+    private final String APPLICATION_NAME = "Socrates";
+    private final String ICON_STR = "/images/32_32img.png";
+    public long iterationTimeMs;
+    private JFrame mainFrame;
+    private JTextArea timerTextArea;
+    private SimpleTimer simpleTimer;
+    private long lastS = 0;
+    private int iterationSeconds = 10;
 
-    public static void main(String[] args) {
-        log.info("Started main thread");
-        MainUtils.loadDefaultProperties();
 
-
-        SwingUtilities.invokeLater(TrayIconImpl::createGUI);
+    private JPanel setupJPanel() {
+        JPanel panel = new JPanel();
+        JTextArea textarea = new LogJTextArea("00:00:00");
+        panel.add(textarea);
+        timerTextArea = textarea;
+        return panel;
     }
 
-    private static void createGUI() {
-        mainFrame = new JFrame(APPLICATION_NAME);
+    private JFrame setupJFrame() {
+        JFrame frame = new LogJFrame(APPLICATION_NAME);
+        frame.setLocationRelativeTo(null);
         // hiding in tray
-        mainFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-        JPanel mainPane = new JPanel(); // создаём панель, на которой будет лежать текстовое поле
-        textarea = new JTextArea();
-        mainPane.add(textarea);
-        mainFrame.setContentPane(mainPane);
-        mainFrame.setMinimumSize(new Dimension(300, 200));
-
-        mainFrame.pack();
-
-
-        setTrayIcon();
-
-        mainFrame.setVisible(appVisibility);
+        frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        JPanel mainPane = setupJPanel();
+        frame.setContentPane(mainPane);
+        frame.setMinimumSize(new Dimension(windowWidth, windowHeight));
+        frame.pack();
+        frame.setVisible(false);
+        return frame;
     }
 
-
-    public static String convertMillisToTime(long millis) {
-        return String.format("%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(millis),
-                TimeUnit.MILLISECONDS.toMinutes(millis) % TimeUnit.HOURS.toMinutes(1),
-                TimeUnit.MILLISECONDS.toSeconds(millis) % TimeUnit.MINUTES.toSeconds(1));
+    private void createGUI() {
+        log.info("creating GUI in UI thread");
+        mainFrame = setupJFrame();
     }
 
-    public static void timeIsUp() {
-        //textarea.setText("Time is up!");
-        if (!mainFrame.isVisible())
-            mainFrame.setVisible(true);
-        long c = System.currentTimeMillis();
-        simpleTimer.stop();
-        long m = System.currentTimeMillis();
+    private MenuItem createMenuItem(String label, ActionListener listener) {
+        MenuItem item = new MenuItem(label);
+        item.addActionListener(listener);
+        return item;
     }
 
-
-
-
-
-    public static void updateTextArea(long timerMillis) {
-        long millis = timerMillis - System.currentTimeMillis();
-
-
-        if (millis > 900) {
-            if (lastS != (millis / 1000)) {
-                String hms = convertMillisToTime(millis);
-                log.info("with " + millis + "remaining change timer to " + hms);
-                textarea.setText(hms);
-                lastS = millis / 1000;
-            }
-        }
-
-
-        else if (!SimpleTimer.timerStopped) {
-            log.info("time is up");
-            textarea.setText("Time is up");
-            log.info("stop timer");
-            SimpleTimer.timerStopped = true;
-            // stop all and notify that timer gone
-            timeIsUp();
-            // sending request to spring
-            log.info("send request");
-            RequestSender.sendRequest(iterationTimeMs);
-        }
-    }
-
-
-
-
-
-
-    private static PopupMenu setupTrayMenu() {
+    private PopupMenu setupTrayMenu() {
         PopupMenu trayMenu = new PopupMenu();
 
         // show app
-        MenuItem openItem = new MenuItem("Show settings");
-        openItem.addActionListener((ActionEvent e) -> mainFrame.setVisible(true));
-        trayMenu.add(openItem);
+        trayMenu.add(createMenuItem("Show settings", (ActionEvent e) -> mainFrame.setVisible(true)));
 
         // run iter
-        MenuItem newIterItem = new MenuItem("Run iteration");
-        newIterItem.addActionListener((ActionEvent e) -> {
-                textarea.setText(convertMillisToTime(iterationSeconds*1000));
-                new Thread(() -> {
-                    simpleTimer = new SimpleTimer(iterationSeconds);
-                    simpleTimer.count();
-                }).start();
-        });
-        trayMenu.add(newIterItem);
-
+        trayMenu.add(createMenuItem("Run iteration", (ActionEvent e) -> {
+            timerTextArea.setText(TimerUtils.convertMillisToTime(iterationSeconds * 1000));
+            simpleTimer = new SimpleTimer(iterationSeconds, this);
+            simpleTimer.count();
+        }));
 
         // close app
-        MenuItem exitItem = new MenuItem("Exit");
-        exitItem.addActionListener((ActionEvent e) -> System.exit(0));
-        trayMenu.add(exitItem);
-
+        trayMenu.add(createMenuItem("Exit", (ActionEvent e) -> System.exit(0)));
 
         return trayMenu;
     }
 
+
     /**
      * ad-hoc solution for for opening trayMenu on clicking left and right mouse buttons
+     *
      * @param trayMenu trayMenu, that opened
      * @return full configurated listener
      */
-    private static MouseListener implMouseListenerAndConfigureFrame(PopupMenu trayMenu) {
+    private MouseListener setupMouseListener(PopupMenu trayMenu) {
         // ad-hoc solution
         final Frame frame = new Frame("");
         frame.setUndecorated(true);
@@ -155,30 +102,12 @@ public class TrayIconImpl {
         frame.setType(Window.Type.UTILITY);
         frame.setVisible(true);
 
-        return new MouseListener() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if ((e.getButton() == MouseEvent.BUTTON1) || (e.getButton() == MouseEvent.BUTTON2)) {
-                    frame.add(trayMenu);
-                    trayMenu.show(frame, e.getXOnScreen(), e.getYOnScreen());
-                }
-            }
-            @Override
-            public void mousePressed(MouseEvent e) {}
-            @Override
-            public void mouseReleased(MouseEvent e) {}
-            @Override
-            public void mouseEntered(MouseEvent e) {}
-            @Override
-            public void mouseExited(MouseEvent e) {}
-        };
+        return new LeftClickMouseListener(frame, trayMenu);
     }
 
-
-
-    private static void setTrayIcon() {
-        if(! SystemTray.isSupported() ) {
-            return;
+    private TrayIcon setupTrayIcon() {
+        if (!SystemTray.isSupported()) {
+            return null;
         }
 
         PopupMenu trayMenu = setupTrayMenu();
@@ -190,20 +119,63 @@ public class TrayIconImpl {
         trayIcon.setPopupMenu(trayMenu);
         trayIcon.setImageAutoSize(true);
 
-
         // open menu by clicking
-        trayIcon.addMouseListener(implMouseListenerAndConfigureFrame(trayMenu));
+        trayIcon.addMouseListener(setupMouseListener(trayMenu));
+        return trayIcon;
+    }
 
-
-
+    private void setupSystemTray() {
         SystemTray tray = SystemTray.getSystemTray();
         try {
-            tray.add(trayIcon);
+            tray.add(setupTrayIcon());
         } catch (AWTException e) {
-            e.printStackTrace();
+            log.error("tray is not supported", e);
+        } catch (NullPointerException e) {
+            log.error("trouble with trayIcon", e);
         }
-
-        trayIcon.displayMessage(APPLICATION_NAME, "Application started!",
-                TrayIcon.MessageType.INFO);
     }
+
+    public void setupUI() {
+        createGUI();
+        setupSystemTray();
+    }
+
+
+    private void timeIsUp() {
+        if (!mainFrame.isVisible()) {
+            mainFrame.setVisible(true);
+        }
+        simpleTimer.stop();
+    }
+
+
+    /**
+     * @param timerMillis запланированное время конца
+     */
+    public void updateTextArea(long timerMillis) {
+        // сколько осталось работать
+        long millis = timerMillis - System.currentTimeMillis();
+
+        if (millis > 0) {
+            long sec = millis / 1000;
+            if (lastS != sec) {
+                String hms = TimerUtils.convertMillisToTime(millis);
+                log.info("{} ({} seconds) remaining", hms, sec);
+                timerTextArea.setText(hms);
+                lastS = millis / 1000;
+            }
+        } else if (!SimpleTimer.timerStopped) {
+            SimpleTimer.timerStopped = true;
+            log.info("time is up");
+            log.info("stop timer");
+
+            // stop all and notify that timer gone
+            timeIsUp();
+            // sending request to spring
+            log.info("send request");
+            RequestSender.sendRequest(iterationTimeMs);
+        }
+    }
+
+
 }

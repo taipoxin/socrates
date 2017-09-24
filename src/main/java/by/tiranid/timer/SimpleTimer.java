@@ -13,8 +13,10 @@ public class SimpleTimer {
     // minimal time = 1 second
     long timerSeconds;
 
-    public static boolean timerStopped = false;
+    public static boolean timerStopped = true;
 
+
+    private TrayIconImpl mainGuiClass;
 
 
     public SimpleTimer() {
@@ -25,8 +27,8 @@ public class SimpleTimer {
     }
 
 
-
-    public SimpleTimer(int seconds) {
+    public SimpleTimer(int seconds, TrayIconImpl mainGuiClass) {
+        this.mainGuiClass = mainGuiClass;
         timerSeconds = seconds;
         timeMillis = timerSeconds * 1000;
     }
@@ -49,15 +51,22 @@ public class SimpleTimer {
     Timer timer;
 
     public void count() {
+        if (!timerStopped) {
+            timer.stop();
+            timerStopped = true;
+        }
         long now = System.currentTimeMillis();
-        TrayIconImpl.iterationTimeMs = now;
+        mainGuiClass.iterationTimeMs = now;
         long endMs = now + timeMillis;
         notifyTimer(endMs);
         timer = new Timer(10, (ActionEvent e) -> {
-            if (!timerStopped)
-                notifyTimer(endMs);
+            if (timerStopped)
+                return;
+            notifyTimer(endMs);
         });
         timer.start();
+        timerStopped = false;
+
     }
 
     public void stop() {
@@ -67,7 +76,7 @@ public class SimpleTimer {
     }
 
     public void notifyTimer(long ms) {
-        TrayIconImpl.updateTextArea(ms);
+        mainGuiClass.updateTextArea(ms);
     }
 
 

@@ -1,7 +1,6 @@
 package by.tiranid.utils;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 public class TestMainUtils {
@@ -15,8 +14,4 @@ public class TestMainUtils {
         Assert.assertEquals(user, "tiranid");
     }
 
-    @Test
-    public void testSetUpLoggerConfig() {
-        MainUtils.setUpLoggerConfig();
-    }
 }
