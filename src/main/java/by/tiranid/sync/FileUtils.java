@@ -1,6 +1,8 @@
 package by.tiranid.sync;
 
 import org.apache.http.NameValuePair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -10,6 +12,7 @@ import java.util.List;
 
 public class FileUtils {
 
+    private static final Logger log = LoggerFactory.getLogger(FileUtils.class);
 
     public static String filePath;
     public static String defPath;
@@ -54,21 +57,22 @@ public class FileUtils {
     public static void saveRecordToFile(List<NameValuePair> record) {
         String relativePath = "chache";
         String fileName = "login.dxl";
-        File file = null;
 
-        file = new File(filePath);
+        File file = new File(filePath);
         if (!file.exists()) {
+            log.info("creating new folder for file {}", fileName);
             file.mkdir();
         }
 
         String data = record.get(1).getValue();
 
         try(FileWriter writer = new FileWriter(relativePath + "/" + fileName, true)) {
+            log.info("writing time = {} in file {}", data, fileName);
             writer.write(data + "\n");
             writer.flush();
         }
         catch (IOException e) {
-            e.printStackTrace();
+            log.error("failed writing", e);
         }
     }
 

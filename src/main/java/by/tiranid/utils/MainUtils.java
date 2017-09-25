@@ -12,24 +12,6 @@ public class MainUtils {
     private static final Logger log = LoggerFactory.getLogger(MainUtils.class);
 
 
-    /**
-     * config is not finished
-     * TODO: убрать совсем либо доделать
-     */
-    /*
-    public static void setUpLoggerConfig() {
-
-        try {
-            LogManager.getLogManager().readConfiguration(MainUtils.class.getResourceAsStream("/logging.properties"));
-        }
-        catch (IOException e) {
-            log.log(Level.WARNING, "log config is not loaded", e);
-            e.printStackTrace();
-        }
-    }
-    */
-
-
     // based on userLogin prop
     public static void loadDefaultProperties() {
         if (FileUtils.defPath == null) {

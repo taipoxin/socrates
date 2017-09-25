@@ -3,9 +3,11 @@ package by.tiranid.swing;
 import by.tiranid.swing.component.LogJFrame;
 import by.tiranid.swing.component.LogJTextArea;
 import by.tiranid.swing.listeners.LeftClickMouseListener;
+import by.tiranid.sync.FileUtils;
 import by.tiranid.timer.SimpleTimer;
 import by.tiranid.timer.TimerUtils;
 import by.tiranid.web.RequestSender;
+import org.apache.http.NameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,11 +17,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
 import java.net.URL;
+import java.util.List;
 
 
-public class TrayIconImpl {
+public class MainGUI {
 
-    private static final Logger log = LoggerFactory.getLogger(TrayIconImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(MainGUI.class);
 
 
     private final int windowWidth = 300;
@@ -32,7 +35,7 @@ public class TrayIconImpl {
     private JFrame mainFrame;
     private JTextArea timerTextArea;
     private SimpleTimer simpleTimer;
-    private long lastS = 0;
+    private long lastRemainSeconds = 0;
     private int iterationSeconds = 10;
 
 
@@ -77,8 +80,8 @@ public class TrayIconImpl {
         // run iter
         trayMenu.add(createMenuItem("Run iteration", (ActionEvent e) -> {
             timerTextArea.setText(TimerUtils.convertMillisToTime(iterationSeconds * 1000));
-            simpleTimer = new SimpleTimer(iterationSeconds, this);
-            simpleTimer.count();
+            simpleTimer = new SimpleTimer(iterationSeconds, 50, this);
+            simpleTimer.startNewTimer();
         }));
 
         // close app
@@ -141,7 +144,7 @@ public class TrayIconImpl {
     }
 
 
-    private void timeIsUp() {
+    private void stopTimer() {
         if (!mainFrame.isVisible()) {
             mainFrame.setVisible(true);
         }
@@ -149,20 +152,31 @@ public class TrayIconImpl {
     }
 
 
+    public void syncAndClean(String login) {
+        boolean success = RequestSender.syncUserData(login, RequestSender.postIterationURI);
+        // успешная доставка запросов
+        if (success) {
+            FileUtils.cleanAfterSync(login);
+        }
+    }
+
+
     /**
      * @param timerMillis запланированное время конца
      */
-    public void updateTextArea(long timerMillis) {
+    public void updateTimerTextArea(long timerMillis) {
         // сколько осталось работать
         long millis = timerMillis - System.currentTimeMillis();
 
         if (millis > 0) {
-            long sec = millis / 1000;
-            if (lastS != sec) {
+            long remainSeconds = millis / 1000;
+            // если поменялась секунда
+            if (lastRemainSeconds != remainSeconds) {
                 String hms = TimerUtils.convertMillisToTime(millis);
-                log.info("{} ({} seconds) remaining", hms, sec);
+                log.info("{} ({} seconds) remaining", hms, remainSeconds);
+
                 timerTextArea.setText(hms);
-                lastS = millis / 1000;
+                lastRemainSeconds = remainSeconds;
             }
         } else if (!SimpleTimer.timerStopped) {
             SimpleTimer.timerStopped = true;
@@ -170,10 +184,17 @@ public class TrayIconImpl {
             log.info("stop timer");
 
             // stop all and notify that timer gone
-            timeIsUp();
+            stopTimer();
+
             // sending request to spring
             log.info("send request");
-            RequestSender.sendRequest(iterationTimeMs);
+            List<NameValuePair> record = RequestSender.createTimeRecord(iterationTimeMs);
+            FileUtils.saveRecordToFile(record);
+
+            boolean trigger = RequestSender.isGetConnectionTo(RequestSender.postIterationURI);
+            if (trigger) {
+                syncAndClean("login");
+            }
         }
     }
 

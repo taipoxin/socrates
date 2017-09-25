@@ -5,21 +5,25 @@ import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.ConnectException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class RequestSender {
 
-    private static String login = "tiranid";
-    private static String password = "6559520";
+    public static final String postIterationURI = "http://localhost:8081/postIter";
+    private static final String login = "tiranid";
+    private static final String password = "6559520";
+    private static final Logger log = LoggerFactory.getLogger(RequestSender.class);
 
 
 
@@ -30,74 +34,93 @@ public class RequestSender {
         return params;
     }
 
-    /**
-     * sending request with iter time to spring app
-     * @param iterStartTime
-     */
-    public static HttpResponse sendRequest(long iterStartTime) {
-        HttpClient httpclient = HttpClients.createDefault();
-        HttpPost httppost = new HttpPost("http://localhost:8081/postIter");
 
-        List<NameValuePair> record = createTimeRecord(iterStartTime);
-
-        // Request parameters and other properties.
-
-        try {
-            httppost.setEntity(new UrlEncodedFormEntity(record, "UTF-8"));
-
-            //Execute and get the response. (connect exception)
-            HttpResponse response = httpclient.execute(httppost);
-            return response;
-        }
-        catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        catch (ConnectException e) {
-            // сохранение в файл с логином времени
-            FileUtils.saveRecordToFile(record);
-            return null;
-        }
-        catch (IOException e) {
-            e.printStackTrace();
+    public static HttpResponse sendRequest(List<NameValuePair> requestBody, String uri, String method) {
+        switch (method) {
+            case "GET":
+                break;
+            case "POST":
+                return sendRequestPost(requestBody, new HttpPost(uri));
         }
         return null;
     }
 
-    public static void syncUserData(String login) {
-        boolean success = true;
+
+    public static HttpResponse sendRequest(List<NameValuePair> requestBody, HttpRequestBase httpRequestBase) {
+        switch (httpRequestBase.getMethod()) {
+            case "GET":
+                break;
+            case "POST":
+                return sendRequestPost(requestBody, (HttpPost) httpRequestBase);
+        }
+        return null;
+    }
+
+
+    public static HttpResponse sendRequestPost(List<NameValuePair> requestBody, String uri) {
+        return sendRequestPost(requestBody, new HttpPost(uri));
+    }
+
+    public static HttpResponse sendRequestPost(List<NameValuePair> requestBody, HttpPost httpPost) {
+        HttpClient httpclient = HttpClients.createDefault();
+        try {
+            httpPost.setEntity(new UrlEncodedFormEntity(requestBody, "UTF-8"));
+
+            //Execute and get the response. (connect exception)
+            HttpResponse response = httpclient.execute(httpPost);
+            return response;
+
+        }
+        catch (ConnectException e) {
+            log.info("connection does not exists");
+        }
+        catch (IOException e) {
+            log.warn("", e);
+        }
+        return null;
+    }
+
+    public static boolean syncUserData(String login, String uri) {
+        boolean success = false;
         // начинается с 0
         int count = 0;
         String path = FileUtils.filePath + "/" + login + ".dxl";
         List<String> lines = FileUtils.readFromDxlToList(path);
+        if (lines.size() != 0) {
+            success = true;
+        }
         HttpResponse response;
         for (String time : lines) {
-            response = sendRequest(Long.valueOf(time));
+            List<NameValuePair> pair = createTimeRecord(Long.valueOf(time));
+            response = sendRequestPost(pair, uri);
             if (response == null) {
                 success = false;
                 break;
             }
             count++;
         }
-        // успешная доставка запросов
-        if (success) {
-            FileUtils.cleanAfterSync(login);
-        }
-        // проблемы
-        else {
-            // стираем файл с логом до проблемного запроса
-            // то есть count строк
-            // лучше - перезапись файла оставшимися значениями из lines
-            FileUtils.updateFile(lines, count, path);
-        }
+        return success;
     }
 
-    public static void main(String[] args) {
-        FileUtils.setFilePath();
 
+    public static HttpResponse checkGetConnectionTo(String uri) {
+        HttpClient httpclient = HttpClients.createDefault();
+        try {
+            HttpGet getReq = new HttpGet(uri);
 
-        sendRequest(new Date().getTime());
-        syncUserData("login");
+            //Execute and get the response. (connect exception)
+            HttpResponse response = httpclient.execute(getReq);
+            return response;
+        } catch (ConnectException e) {
+            log.info("connection does not exists");
+        } catch (IOException e) {
+            log.warn("", e);
+        }
+        return null;
+    }
 
-        //cleanAfterSync();
+    public static boolean isGetConnectionTo(String uri) {
+        HttpResponse response = checkGetConnectionTo(uri);
+        return response != null;
     }
 }
