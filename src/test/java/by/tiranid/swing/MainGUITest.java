@@ -1,8 +1,12 @@
 package by.tiranid.swing;
 
 import by.tiranid.sync.FileUtils;
+import by.tiranid.web.RequestSender;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.List;
 
 public class MainGUITest {
 
@@ -14,10 +18,22 @@ public class MainGUITest {
     }
 
     // TODO : пофиксить establishing ssl connection
-    // TODO : дописать
     @Test
     public void testSyncAndClean() {
-        FileUtils.setFilePath();
+        String path = FileUtils.setFilePath();
+        FileUtils.saveDataToFile("123456");
+        FileUtils.saveDataToFile("223456");
+        FileUtils.saveDataToFile("323456");
         gui.syncAndClean("login");
+
+        boolean bool = RequestSender.isGetConnectionTo(RequestSender.postIterationURI);
+        if (bool) {
+            String filepath = path + "login.dxl";
+            System.out.println(filepath);
+            List<String> pair = FileUtils.readFromDxlToList(filepath);
+            Assert.assertEquals(0, pair.size());
+        }
+
+
     }
 }

@@ -53,8 +53,8 @@ public class FileUtils {
         needSync = false;
     }
 
+    public static void saveDataToFile(String data) {
 
-    public static void saveRecordToFile(List<NameValuePair> record) {
         String relativePath = "chache";
         String fileName = "login.dxl";
 
@@ -64,16 +64,19 @@ public class FileUtils {
             file.mkdir();
         }
 
-        String data = record.get(1).getValue();
 
-        try(FileWriter writer = new FileWriter(relativePath + "/" + fileName, true)) {
+        try (FileWriter writer = new FileWriter(relativePath + "/" + fileName, true)) {
             log.info("writing time = {} in file {}", data, fileName);
             writer.write(data + "\n");
             writer.flush();
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             log.error("failed writing", e);
         }
+    }
+
+
+    public static void saveRecordToFile(List<NameValuePair> record) {
+        saveDataToFile(record.get(1).getValue());
     }
 
 
