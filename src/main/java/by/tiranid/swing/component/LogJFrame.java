@@ -1,14 +1,12 @@
 package by.tiranid.swing.component;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import java.awt.*;
 
+@Slf4j
 public class LogJFrame extends JFrame {
-
-    private static final Logger log = LoggerFactory.getLogger(LogJFrame.class);
 
     public LogJFrame() throws HeadlessException {
         super();

@@ -1,11 +1,12 @@
 package by.tiranid.utils;
 
 import by.tiranid.sync.FileUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
 import java.util.Properties;
-import java.util.logging.Logger;
 
+@Slf4j
 public class MainClientProperties {
 
     // default = config.properties
@@ -14,7 +15,6 @@ public class MainClientProperties {
     public static String propFilePath;
     public static Properties properties;
 
-    private static final Logger log = Logger.getLogger(MainClientProperties.class.getName());
 
 
     public static void setPropFilePath() {

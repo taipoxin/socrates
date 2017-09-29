@@ -7,9 +7,9 @@ import by.tiranid.sync.FileUtils;
 import by.tiranid.timer.SimpleTimer;
 import by.tiranid.timer.TimerUtils;
 import by.tiranid.web.RequestSender;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.NameValuePair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,18 +20,20 @@ import java.net.URL;
 import java.util.List;
 
 
+@Slf4j
 public class MainGUI {
 
-    private static final Logger log = LoggerFactory.getLogger(MainGUI.class);
-
-
+    @Getter
     private final int windowWidth = 300;
+    @Getter
     private final int windowHeight = 200;
-
-
+    @Getter
     private final String APPLICATION_NAME = "Socrates";
+    @Getter
     private final String ICON_STR = "/images/32_32img.png";
-    public long iterationTimeMs;
+
+    @Getter
+    private long iterationTimeMs;
     private JFrame mainFrame;
     private JTextArea timerTextArea;
     private SimpleTimer simpleTimer;
@@ -79,6 +81,7 @@ public class MainGUI {
 
         // run iter
         trayMenu.add(createMenuItem("Run iteration", (ActionEvent e) -> {
+            iterationTimeMs = System.currentTimeMillis();
             timerTextArea.setText(TimerUtils.convertMillisToTime(iterationSeconds * 1000));
             simpleTimer = new SimpleTimer(iterationSeconds, 50, this);
             simpleTimer.startNewTimer();
@@ -152,7 +155,7 @@ public class MainGUI {
     }
 
 
-    public void syncAndClean(String login) {
+    private void syncAndClean(String login) {
         boolean success = RequestSender.syncUserData(login, RequestSender.postIterationURI);
         // успешная доставка запросов
         if (success) {

@@ -1,9 +1,12 @@
 package by.tiranid.swing.listeners;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
+@Slf4j
 public class LeftClickMouseListener implements MouseListener {
 
     private Frame frame;

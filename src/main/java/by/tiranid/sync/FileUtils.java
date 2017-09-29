@@ -1,5 +1,6 @@
 package by.tiranid.sync;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.NameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class FileUtils {
 
     private static final Logger log = LoggerFactory.getLogger(FileUtils.class);

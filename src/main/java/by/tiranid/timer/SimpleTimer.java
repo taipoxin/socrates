@@ -2,10 +2,12 @@ package by.tiranid.timer;
 
 
 import by.tiranid.swing.MainGUI;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 
+@Slf4j
 public class SimpleTimer {
 
 
@@ -75,22 +77,19 @@ public class SimpleTimer {
     }
 
 
-    //
+
     public void startNewTimer() {
         if (!timerStopped) {
             timer.stop();
             timerStopped = true;
         }
         long now = System.currentTimeMillis();
-        mainGuiClass.iterationTimeMs = now;
-        long endMs = now + timeMillis;
+        long endMs = mainGuiClass.getIterationTimeMs() + timeMillis;
         mainGuiClass.updateTimerTextArea(endMs);
         timer = createTimer(delay, endMs);
 
         timerStopped = false;
         timer.start();
-
-
     }
 
     public void stop() {

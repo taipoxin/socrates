@@ -1,6 +1,7 @@
 package by.tiranid.web;
 
 import by.tiranid.sync.FileUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
@@ -10,25 +11,22 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class RequestSender {
 
-    public static final String postIterationURI = "http://localhost:8081/postIter";
+    public static final String postIterationURI = "http://localhost:8080/postIter";
     private static final String login = "tiranid";
     private static final String password = "6559520";
-    private static final Logger log = LoggerFactory.getLogger(RequestSender.class);
-
 
 
     public static List<NameValuePair> createTimeRecord(long iterStartTime) {
-        List<NameValuePair> params = new ArrayList<NameValuePair>(2);
+        List<NameValuePair> params = new ArrayList<>(2);
         params.add(new BasicNameValuePair("hash", Integer.toString((login+password).hashCode())));
         params.add(new BasicNameValuePair("time", Long.toString(iterStartTime)));
         return params;
@@ -70,11 +68,11 @@ public class RequestSender {
             HttpResponse response = httpclient.execute(httpPost);
             return response;
 
-        }
-        catch (ConnectException e) {
+        } catch (NullPointerException e) {
+            log.warn("", e);
+        } catch (ConnectException e) {
             log.info("connection does not exists");
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             log.warn("", e);
         }
         return null;

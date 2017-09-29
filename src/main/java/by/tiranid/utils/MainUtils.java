@@ -1,15 +1,13 @@
 package by.tiranid.utils;
 
 import by.tiranid.sync.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Properties;
 
 
+@Slf4j
 public class MainUtils {
-
-    private static final Logger log = LoggerFactory.getLogger(MainUtils.class);
 
 
     // based on userLogin prop
@@ -41,8 +39,7 @@ public class MainUtils {
             props.setProperty("userLogin", userLogin);
             MainClientProperties.updatePropFile(props);
             log.info("properties set by default for current user " + userLogin);
-        }
-        else {
+        } else {
             log.info("properties set successfully");
         }
     }

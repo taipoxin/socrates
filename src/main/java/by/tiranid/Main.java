@@ -2,14 +2,12 @@ package by.tiranid;
 
 import by.tiranid.swing.MainGUI;
 import by.tiranid.utils.MainUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 
+@Slf4j
 public class Main {
-
-    private static Logger log = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) {
         log.info("Started main thread");
@@ -18,4 +16,5 @@ public class Main {
 
         SwingUtilities.invokeLater(mpl::setupUI);
     }
+
 }
