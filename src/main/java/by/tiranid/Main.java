@@ -1,6 +1,6 @@
 package by.tiranid;
 
-import by.tiranid.swing.MainGUI;
+import by.tiranid.swing.layouts.MainGUI;
 import by.tiranid.utils.MainUtils;
 import lombok.extern.slf4j.Slf4j;
 

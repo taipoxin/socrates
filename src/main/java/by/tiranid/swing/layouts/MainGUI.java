@@ -1,4 +1,4 @@
-package by.tiranid.swing;
+package by.tiranid.swing.layouts;
 
 import by.tiranid.swing.component.LogJFrame;
 import by.tiranid.swing.component.LogJTextArea;
@@ -77,7 +77,17 @@ public class MainGUI {
         PopupMenu trayMenu = new PopupMenu();
 
         // show app
-        trayMenu.add(createMenuItem("Show settings", (ActionEvent e) -> mainFrame.setVisible(true)));
+        trayMenu.add(createMenuItem("Show main", (ActionEvent e) -> mainFrame.setVisible(true)));
+
+        /**
+         * open settings
+         * @see Settings
+         */
+        trayMenu.add(createMenuItem("Show settings", (ActionEvent e) -> {
+            Settings settings = new Settings();
+            settings.setupJFrame();
+            settings.setVisible(true);
+        }));
 
         // run iter
         trayMenu.add(createMenuItem("Run iteration", (ActionEvent e) -> {
@@ -155,7 +165,7 @@ public class MainGUI {
     }
 
 
-    private void syncAndClean(String login) {
+    public void syncAndClean(String login) {
         boolean success = RequestSender.syncUserData(login, RequestSender.postIterationURI);
         // успешная доставка запросов
         if (success) {

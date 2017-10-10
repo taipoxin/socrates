@@ -1,7 +1,7 @@
 package by.tiranid.timer;
 
 
-import by.tiranid.swing.MainGUI;
+import by.tiranid.swing.layouts.MainGUI;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;

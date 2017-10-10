@@ -1,5 +1,6 @@
 package by.tiranid.swing;
 
+import by.tiranid.swing.layouts.MainGUI;
 import by.tiranid.sync.FileUtils;
 import by.tiranid.web.RequestSender;
 import org.junit.Assert;
