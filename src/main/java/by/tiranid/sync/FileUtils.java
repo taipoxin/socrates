@@ -45,7 +45,7 @@ public class FileUtils {
 
 
     public static void cleanAfterSync(String login) {
-        try (PrintWriter writer = new PrintWriter(filePath + "/" + login + ".dxl")) {
+        try (PrintWriter writer = new PrintWriter(filePath + login + ".dxl")) {
             writer.close();
         }
         catch (IOException e) {
@@ -79,6 +79,10 @@ public class FileUtils {
 
     public static void saveRecordToFile(List<NameValuePair> record) {
         saveDataToFile(record.get(1).getValue());
+    }
+
+    public static void saveTimeToFile(long time) {
+        saveDataToFile(Long.toString(time));
     }
 
 

@@ -1,6 +1,7 @@
 package by.tiranid.web;
 
 import by.tiranid.sync.FileUtils;
+import by.tiranid.utils.MainClientProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -14,6 +15,8 @@ import org.apache.http.message.BasicNameValuePair;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.sql.Date;
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,8 +30,14 @@ public class RequestSender {
 
     public static List<NameValuePair> createTimeRecord(long iterStartTime) {
         List<NameValuePair> params = new ArrayList<>(2);
+        Date d = new Date(iterStartTime);
+        Time t = new Time(iterStartTime);
         params.add(new BasicNameValuePair("hash", Integer.toString((login+password).hashCode())));
-        params.add(new BasicNameValuePair("time", Long.toString(iterStartTime)));
+        params.add(new BasicNameValuePair("date", d.toString()));
+        params.add(new BasicNameValuePair("time", t.toString()));
+        // FIXME: it
+        params.add(new BasicNameValuePair("duration", MainClientProperties.properties.getProperty("default_duration")));
+
         return params;
     }
 
@@ -82,7 +91,7 @@ public class RequestSender {
         boolean success = false;
         // начинается с 0
         int count = 0;
-        String path = FileUtils.filePath + "/" + login + ".dxl";
+        String path = FileUtils.filePath + login + ".dxl";
         List<String> lines = FileUtils.readFromDxlToList(path);
         if (lines.size() != 0) {
             success = true;

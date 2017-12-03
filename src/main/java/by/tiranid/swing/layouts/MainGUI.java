@@ -16,6 +16,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
@@ -38,7 +39,7 @@ public class MainGUI {
     private JTextArea timerTextArea;
     private SimpleTimer simpleTimer;
     private long lastRemainSeconds = 0;
-    private int iterationSeconds = 10;
+    private int iterationSeconds = 5;
 
 
     private JPanel setupJPanel() {
@@ -129,7 +130,18 @@ public class MainGUI {
         PopupMenu trayMenu = setupTrayMenu();
 
         URL imageURL = TrayIcon.class.getResource(ICON_STR);
-
+        if (imageURL == null) {
+            // for running from jar
+            try {
+                // FIXME : should be changed to reading from resAsStream
+                imageURL = new URL("file:///C|/JavaProjects/socrates/src/main/resources" + ICON_STR);
+                // dont works
+                //imageURL = new URL(TrayIcon.class.getResourceAsStream(ICON_STR).toString());
+            } catch (MalformedURLException e) {
+                log.error("problem with loading image");
+                return null;
+            }
+        }
         Image icon = Toolkit.getDefaultToolkit().getImage(imageURL);
         TrayIcon trayIcon = new TrayIcon(icon, APPLICATION_NAME);
         trayIcon.setPopupMenu(trayMenu);
@@ -146,8 +158,10 @@ public class MainGUI {
             tray.add(setupTrayIcon());
         } catch (AWTException e) {
             log.error("tray is not supported", e);
+            mainFrame.setVisible(true);
         } catch (NullPointerException e) {
             log.error("trouble with trayIcon", e);
+            mainFrame.setVisible(true);
         }
     }
 
@@ -202,7 +216,8 @@ public class MainGUI {
             // sending request to spring
             log.info("send request");
             List<NameValuePair> record = RequestSender.createTimeRecord(iterationTimeMs);
-            FileUtils.saveRecordToFile(record);
+            //FileUtils.saveRecordToFile(record);
+            FileUtils.saveTimeToFile(iterationTimeMs);
 
             boolean trigger = RequestSender.isGetConnectionTo(RequestSender.postIterationURI);
             if (trigger) {

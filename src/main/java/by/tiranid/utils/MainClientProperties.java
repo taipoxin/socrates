@@ -16,7 +16,6 @@ public class MainClientProperties {
     public static Properties properties;
 
 
-
     public static void setPropFilePath() {
         MainClientProperties.propFilePath = FileUtils.defPath + propRelativePath + propFile;
     }
