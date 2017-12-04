@@ -9,7 +9,6 @@ import by.tiranid.timer.TimerUtils;
 import by.tiranid.web.RequestSender;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.NameValuePair;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,7 +17,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.List;
 
 
 @Slf4j
@@ -39,7 +37,7 @@ public class MainGUI {
     private JTextArea timerTextArea;
     private SimpleTimer simpleTimer;
     private long lastRemainSeconds = 0;
-    private int iterationSeconds = 5;
+    private int iterationSeconds = 60 * 25;
 
 
     private JPanel setupJPanel() {
@@ -74,35 +72,7 @@ public class MainGUI {
         return item;
     }
 
-    private PopupMenu setupTrayMenu() {
-        PopupMenu trayMenu = new PopupMenu();
-
-        // show app
-        trayMenu.add(createMenuItem("Show main", (ActionEvent e) -> mainFrame.setVisible(true)));
-
-        /**
-         * open settings
-         * @see Settings
-         */
-        trayMenu.add(createMenuItem("Show settings", (ActionEvent e) -> {
-            Settings settings = new Settings();
-            settings.setupJFrame();
-            settings.setVisible(true);
-        }));
-
-        // run iter
-        trayMenu.add(createMenuItem("Run iteration", (ActionEvent e) -> {
-            iterationTimeMs = System.currentTimeMillis();
-            timerTextArea.setText(TimerUtils.convertMillisToTime(iterationSeconds * 1000));
-            simpleTimer = new SimpleTimer(iterationSeconds, 50, this);
-            simpleTimer.startNewTimer();
-        }));
-
-        // close app
-        trayMenu.add(createMenuItem("Exit", (ActionEvent e) -> System.exit(0)));
-
-        return trayMenu;
-    }
+    private String post_iter_uri;
 
 
     /**
@@ -178,9 +148,60 @@ public class MainGUI {
         simpleTimer.stop();
     }
 
+    private PopupMenu setupTrayMenu() {
+        PopupMenu trayMenu = new PopupMenu();
+
+        // show app
+        trayMenu.add(createMenuItem("Show main", (ActionEvent e) -> mainFrame.setVisible(true)));
+
+        /**
+         * open settings
+         * @see Settings
+         */
+        trayMenu.add(createMenuItem("Show settings", (ActionEvent e) -> {
+            Settings settings = new Settings();
+            settings.setupJFrame();
+            settings.setVisible(true);
+        }));
+
+        // run iter
+        trayMenu.add(createMenuItem("Run iteration", (ActionEvent e) -> {
+            SimpleTimer.stopCall = false;
+            iterationTimeMs = System.currentTimeMillis();
+            timerTextArea.setText(TimerUtils.convertMillisToTime(iterationSeconds * 1000));
+            simpleTimer = new SimpleTimer(iterationSeconds, 50, this);
+            simpleTimer.startNewTimer();
+        }));
+
+        // stop iter
+        trayMenu.add(createMenuItem("Stop iteration", (ActionEvent e) -> {
+            SimpleTimer.stopCall = true;
+            //List<NameValuePair> record = RequestSender.createTimeRecord(iterationTimeMs);
+            //FileUtils.saveRecordToFile(record);
+            FileUtils.saveTimeToFile(iterationTimeMs);
+
+            if (post_iter_uri == null)
+                post_iter_uri = "http://" + RequestSender.getServerIp() + ":" + RequestSender.getServerPort() + RequestSender.getPostIterationURI();
+
+            boolean trigger = RequestSender.isGetConnectionTo(post_iter_uri);
+            if (trigger) {
+                syncAndClean("login");
+            }
+        }));
+
+        // close app
+        trayMenu.add(createMenuItem("Exit", (ActionEvent e) -> System.exit(0)));
+
+        return trayMenu;
+    }
 
     public void syncAndClean(String login) {
-        boolean success = RequestSender.syncUserData(login, RequestSender.postIterationURI);
+        if (post_iter_uri == null)
+            post_iter_uri = "http://" + RequestSender.getServerIp() + ":" + RequestSender.getServerPort() + RequestSender.getPostIterationURI();
+
+
+        boolean success = RequestSender.syncUserData(login, post_iter_uri);
+
         // успешная доставка запросов
         if (success) {
             FileUtils.cleanAfterSync(login);
@@ -215,11 +236,15 @@ public class MainGUI {
 
             // sending request to spring
             log.info("send request");
-            List<NameValuePair> record = RequestSender.createTimeRecord(iterationTimeMs);
+
+            //List<NameValuePair> record = RequestSender.createTimeRecord(iterationTimeMs);
             //FileUtils.saveRecordToFile(record);
             FileUtils.saveTimeToFile(iterationTimeMs);
 
-            boolean trigger = RequestSender.isGetConnectionTo(RequestSender.postIterationURI);
+            if (post_iter_uri == null)
+                post_iter_uri = "http://" + RequestSender.getServerIp() + ":" + RequestSender.getServerPort() + RequestSender.getPostIterationURI();
+
+            boolean trigger = RequestSender.isGetConnectionTo(post_iter_uri);
             if (trigger) {
                 syncAndClean("login");
             }

@@ -2,6 +2,8 @@ package by.tiranid.web;
 
 import by.tiranid.sync.FileUtils;
 import by.tiranid.utils.MainClientProperties;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -23,7 +25,15 @@ import java.util.List;
 @Slf4j
 public class RequestSender {
 
-    public static final String postIterationURI = "http://localhost:8080/postIter";
+    @Getter
+    @Setter
+    private static String serverIp;
+    @Getter
+    @Setter
+    private static String serverPort = "8080";
+    @Getter
+    @Setter
+    private static String postIterationURI = "/postIter";
     private static final String login = "tiranid";
     private static final String password = "6559520";
 

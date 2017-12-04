@@ -7,6 +7,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.net.InetAddress;
 import java.util.List;
 
 public class MainGUITest {
@@ -20,14 +21,23 @@ public class MainGUITest {
 
     // TODO : пофиксить establishing ssl connection
     @Test
-    public void testSyncAndClean() {
+    public void testSyncAndClean() throws Exception {
         String path = FileUtils.setFilePath();
         FileUtils.saveDataToFile("123456");
         FileUtils.saveDataToFile("223456");
         FileUtils.saveDataToFile("323456");
+
+
+        InetAddress addr = InetAddress.getLocalHost();
+        String server_Ip = addr.getHostAddress();
+        RequestSender.setServerIp(server_Ip);
+
+
         gui.syncAndClean("login");
 
-        boolean bool = RequestSender.isGetConnectionTo(RequestSender.postIterationURI);
+
+        String uri = "http://" + RequestSender.getServerIp() + ":" + RequestSender.getServerPort() + RequestSender.getPostIterationURI();
+        boolean bool = RequestSender.isGetConnectionTo(uri);
         if (bool) {
             String filepath = path + "login.dxl";
             System.out.println(filepath);

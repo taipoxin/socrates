@@ -67,11 +67,13 @@ public class SimpleTimer {
         timeMillis = timerSeconds * 1000;
     }
 
+    public static boolean stopCall = false;
 
     private Timer createTimer(int delayMs, long endMs) {
         return new Timer(delayMs, (ActionEvent e) -> {
-            if (timerStopped)
+            if (timerStopped || stopCall) {
                 return;
+            }
             mainGuiClass.updateTimerTextArea(endMs);
         });
     }
